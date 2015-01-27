@@ -389,7 +389,7 @@ phpInstallation(){
 		xdebug.trace_options=0
 		xdebug.trace_output_name=crc32' >> /etc/php5/mods-available/xdebug.ini"
 
-  fi
+	fi
 
 	# Replacing listening port to be $apachePort:
 	sudo sed -i "s/Listen 80/Listen $apachePort/" /etc/php5/fpm/pool.d/www.conf
