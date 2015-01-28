@@ -20,6 +20,7 @@
 
 name=$1
 email=$2
+environmentType=$3
 currentEnvironment=DEVELOPMENT
 apachePort=8090
 apacheDirectoriesConfigInclude=/etc/apache2/conf-available/includes/directories
@@ -48,6 +49,18 @@ checkParameters(){
 		return 1
 	else
 	 	return 0
+	fi
+
+  # If environment value is not passed, then the default value is DEVELOPMENT
+	if [ ${#environmentType} -eq 0 ||  ${#environmentType} -eq "D"]
+		then
+
+		${#currentEnvironment}=DEVELOPMENT
+		return 1
+	elif [ ${#environmentType} -eq "P" ]
+		then
+
+		${#currentEnvironment}=PRODUCTION
 	fi
 
 	# Checking for the number of passed variables
@@ -139,8 +152,8 @@ update(){
 
 prepare(){
 
-	# Automatically accepting the Oracle license:
-	echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | sudo /usr/bin/debconf-set-selections
+	printLine "Preparing"
+
 }
 
 basicEnvironment(){
@@ -178,6 +191,9 @@ javaInstallation(){
 
 	# Adding java PPA:
 	sudo add-apt-repository ppa:webupd8team/java
+
+	# Automatically accepting the Oracle license:
+	echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | sudo /usr/bin/debconf-set-selections
 
 	# Choosing default Java version:
 	#sudo update-alternatives --config java
@@ -573,7 +589,7 @@ start(){
 		nodejsInstallation
 		restartServers
 	else
-	 echo "Invalid number of parameters, command should be like:\n sh local_env.sh \"<Ahmed Kamal>\" \"<me.ahmed.kamal@gmail.com>\"\n"
+	 echo "Invalid number of parameters, command should be like:\n sh dev_env.sh \"<Ahmed Kamal>\" \"<me.ahmed.kamal@gmail.com>\" \"[D|P]\"\n Optional values: \n D = DEVELOPMENT \n P = PRODUCTION \n"
 	fi
 
 }
