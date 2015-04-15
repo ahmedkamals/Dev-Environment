@@ -3,9 +3,9 @@
 # @file
 # Local environment.
 #
-# Copyright © 2015, Nilecode for internet solutions and applications, Inc. (https://github.com/ahmedkamals)
+# Copyright © 2015, Ahmed Kamal. (https://github.com/ahmedkamals)
 #
-# This file is part of Nilecode server configurations.
+# This file is part of Ahmed Kamal's server configurations.
 # ® Redistributions of files must retain the above copyright notice.
 #
 # @copyright     Ahmed Kamal (https://github.com/ahmedkamals)
@@ -13,7 +13,7 @@
 # @package       AK
 # @subpackage
 # @version       1.0
-# @since         2014-10-10 Happy day :)
+# @since         2015-01-25 Happy day :)
 # @license
 # @author        Ahmed Kamal <me.ahmed.kamal@gmail.com>
 # @modified      2015-01-25
@@ -90,7 +90,7 @@ isFileExists(){
 printLine(){
 
 	local title=$1
-	echo "\n******************************************************************\n $title \n******************************************************************\n"
+	echo -e "\n******************************************************************\n $title \n******************************************************************\n"
 }
 
 updatePrivilage(){
@@ -147,7 +147,7 @@ update(){
 	sudo apt-key update
 
 	# Updating pacakges:
-	sudo apt-get update && sudo apt-get -y upgrade
+	sudo apt-get -y update && sudo apt-get -y upgrade
 }
 
 prepare(){
@@ -158,9 +158,9 @@ prepare(){
 
 basicEnvironment(){
 
-	# Installing memcached, mysql-server, curl, phantomjs, mongodb, git, postfix, drush, ruby-sass, ruby-compass, node-less, htop, httpie, rar, unrar-free, oracle-java8-set-default, oracle-java8-installer, apache2-mpm-worker, PHP-APC
+	# Installing memcached, mysql-server, curl, phantomjs, mongodb, git, postfix, ruby-sass, ruby-compass, node-less, htop, httpie, rar, unrar-free, xclip
 	# apache2-utils for apache utilities like apache benchmark "ab"
-	sudo apt-get install memcached mysql-server curl phantomjs mongodb git postfix drush ruby-sass ruby-compass node-less htop httpie rar unrar-free
+	sudo apt-get -y install memcached mysql-server curl phantomjs mongodb git postfix ruby-sass ruby-compass node-less htop httpie rar unrar-free xclip
 }
 
 devEnvironment(){
@@ -168,7 +168,7 @@ devEnvironment(){
 	printLine "devEnvironment"
 
 	# Installing phpmyadmin, git-flow, filezilla, mysql-workbench, atom, sublime-text-installer, eclipse, android-studio, google-chrome-stable, skype, virtualbox-4.3, gimp, gparted, vlc, vuze
-	sudo apt-get install phpmyadmin git-flow filezilla mysql-workbench atom sublime-text-installer eclipse android-studio google-chrome-stable skype virtualbox-4.3 gimp gparted vlc vuze -y
+	sudo apt-get install -y phpmyadmin git-flow filezilla mysql-workbench atom sublime-text-installer eclipse android-studio google-chrome-stable skype virtualbox-4.3 gimp gparted vlc vuze
 
 }
 
@@ -199,8 +199,9 @@ javaInstallation(){
 	#sudo update-alternatives --config java
 	#sudo update-alternatives --config javac
 
-	# oracle-java8-set-default automatically set up the Java 8 environment variables
-	sudo apt-get install oracle-java8-set-default oracle-java8-installer -y
+	# Installing oracle-java8-set-default, oracle-java8-installer
+	# oracle-java8-set-default package will automatically set up the Java 8 environment variables
+	sudo apt-get install -y oracle-java8-set-default oracle-java8-installer
 
 	# Setting the JAVA_HOME environment variable:
 	sudo sh -c "echo 'JAVA_HOME=/usr/lib/jvm/java-8-oracle' >> /etc/environment"
@@ -217,7 +218,7 @@ nginxInstallation(){
 	printLine "Nginx"
 
 	# Installing nginx:
-	sudo apt-get install nginx -y
+	sudo apt-get install -y nginx
 
 	# workerProcesses=`grep processor /proc/cpuinfo | wc -l`
 	workerConnections=`ulimit -n`
@@ -242,6 +243,9 @@ nginxInstallation(){
 
 	# Testing nginx configurations:
 	sudo service nginx configtest
+
+	# Starting Nginx:
+	sudo service nginx start
 }
 
 ##
@@ -252,7 +256,7 @@ varnishInstallation(){
 	printLine "Varnish"
 
 	# Installing varnish
-	sudo apt-get install varnish -y
+	sudo apt-get install -y varnish
 
 	# Maximum number of open files (for ulimit -n)
 	maxOpenFiles=`ulimit -n`
@@ -283,6 +287,9 @@ varnishInstallation(){
 
 	sudo sed -i "s/NFILES=131072/NFILES=$maxOpenFiles/" /etc/default/varnish
 	sudo sed -i "s/MEMLOCK=82000/MEMLOCK=$maxLockedMemory/" /etc/default/varnish
+
+	# Starting Varnish:
+	sudo service varnish start
 }
 
 apacheInstallation(){
@@ -290,12 +297,13 @@ apacheInstallation(){
 	printLine "Apache"
 
 	# Installing apache2, apache2-utils, libapache2-mod-fastcgi, cronolog:
-	sudo apt-get install apache2 apache2-utils libapache2-mod-fastcgi cronolog  -y
+	# apache2-mpm-worker
+	sudo apt-get install -y apache2 apache2-utils libapache2-mod-fastcgi cronolog
 
 	# libapache2-mod-rpaf The RPAF (Reverse Proxy Add Forward) module will make sure the IP of 127.0.0.1 will be replaced with the IP set in X-Forwarded-For set by Varnish as Apache will doesn't know who connects to it except the host ip address.
 
-	# Enabling actions, fastcgi, rewrite, headers, expires, and macro modules:
-	sudo a2enmod actions fastcgi rewrite headers expires macro proxy_fcgi
+	# Enabling actions, fastcgi, rewrite, headers, expires, macro, proxy_http, and proxy_fcgi modules:
+	sudo a2enmod actions fastcgi rewrite headers expires macro proxy_http proxy_fcgi
 
 	# This will reduce the memory footprint of Apache, "negotiation" allows some languages negociation in the HTTP protocol between the browser and the server:
 	sudo a2dismod autoindex cgid negotiation
@@ -304,8 +312,11 @@ apacheInstallation(){
 	if (! isFileExists "/etc/apache2/ports.conf.orig")
 	then
 
-	sudo cp /etc/apache2/ports.conf /etc/apache2/ports.conf.orig
-	sudo chmod a-x /etc/apache2/ports.conf.orig
+		sudo cp /etc/apache2/ports.conf /etc/apache2/ports.conf.orig
+		sudo chmod a-x /etc/apache2/ports.conf.orig
+
+		# Changing listening port to be 8000 instead of 80:
+		sudo sed -i 's/Listen 80/Listen 8000/' /etc/apache2/ports.conf
 	fi
 
 	# Check if one of the directories exists:
@@ -315,9 +326,6 @@ apacheInstallation(){
 	sudo mkdir -p $apacheDirectoriesConfigInclude
 	sudo mkdir -p $apacheHostsConfigInclude
 	fi
-
-	# Changing listening port to be 8000 instead of 80:
-	sudo sed -i 's/Listen 80/Listen 8000/' /etc/apache2/ports.conf
 
 	# Copying apache configurations:
 	sudo cp apache/conf-available/*.conf /etc/apache2/conf-available/ -R
@@ -337,6 +345,9 @@ apacheInstallation(){
 
 	# Gracefully restart Apache (this method of restarting won't kill open connections):
 	sudo apache2ctl graceful
+
+	# Starting Apache2:
+	sudo service apache2 start
 }
 
 phpInstallation(){
@@ -347,8 +358,8 @@ phpInstallation(){
 	wget -O - http://dl.hhvm.com/conf/hhvm.gpg.key | sudo apt-key add -
 	echo "deb http://dl.hhvm.com/ubuntu $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hhvm.list > /dev/null
 
-	# Installing hhvm, php5, php5-fpm, php5-cli, php5-curl, php5-redis, php5-memcached, php5-mysql, php5-dev, phpunit, re2c, libpcre3-dev
-	sudo apt-get install hhvm php5 php5-fpm php5-cli php5-curl php5-redis php5-memcached php5-mysql php5-dev phpunit re2c libpcre3-dev -y
+	# Installing hhvm, php5, php5-fpm, php5-cli, php5-curl, php-apc, php5-redis, php5-memcached, php5-mysql, php5-dev, phpunit, php-codesniffer, drush, re2c, libpcre3-dev
+	sudo apt-get install -y hhvm php5 php5-fpm php5-cli php5-curl php-apc php5-redis php5-memcached php5-mysql php5-dev phpunit php-codesniffer drush re2c libpcre3-dev
 
 	# Backing up php5-fpm configuration:
 	sudo cp /etc/php5/fpm/pool.d/www.conf /etc/php5/fpm/pool.d/www.conf.orig
@@ -364,7 +375,7 @@ phpInstallation(){
 	then
 
 		# Installing php5-xdebug:
-		sudo apt-get install php5-xdebug -y
+		sudo apt-get install -y php5-xdebug
 		sudo sh -c "echo '
 		[Remote settings]
 		xdebug.remote_autostart=off
@@ -409,6 +420,9 @@ phpInstallation(){
 
 	# Replacing listening port to be $apachePort:
 	sudo sed -i "s/Listen 80/Listen $apachePort/" /etc/php5/fpm/pool.d/www.conf
+
+	# Starting php5-fpm:
+	sudo service php5-fpm start
 }
 
 environment(){
@@ -439,7 +453,7 @@ environment(){
 	sudo find /etc -name "hosts" -exec sed -i '$a\\' {} ";"
 
 	# Applying hosts file:
-	sudo sh -c 'echo "\n127.0.0.1 ahmedkamal.com" >> /etc/hosts'
+	sudo sh -c 'echo "\n127.0.0.1 ahmedkamal.local local.ahmedkamal.com" >> /etc/hosts'
 }
 
 sshConfigurations(){
@@ -487,7 +501,7 @@ phalconPHPInstallation(){
 	sudo apt-add-repository ppa:phalcon/stable
 
 	# Installing phalconphp:
-	sudo apt-get install php5-phalcon -y
+	sudo apt-get install -y php5-phalcon
 
 	# On Linux you can easily compile and install the extension from source code.
 	#sudo git clone --depth=1 git://github.com/phalcon/cphalcon.git $toolsPath/cphalcon
@@ -539,28 +553,54 @@ nodejsInstallation(){
 	# Downloading, and adding nodejs PPA:
 	curl -sL https://deb.nodesource.com/setup | sudo bash -
 
-	# Installing nodejs, npm
+	# Installing nodejs, npm:
 	sudo apt-get install nodejs npm -y
 
 	# In old releases environment variables needs to be set manually.
 	# Setting the NODE_PATH environment variable:
 	#sudo sh -c "echo 'NODE_PATH=/usr/local/lib/node_modules' >> /etc/environment"
 
+	if [ "${NODE_PATH}" = "" ]; then
+		export NODE_PATH=$(npm -g root 2>/dev/null)
+	fi
+
+	#node ${1}
+
 	# Reloading the environment variables file:
 	#source /etc/environment
 
-	# Installing gulp globally, for automated tasks:
-	sudo npm install -g gulp grunt-cli bower jade underscore cookie redis memcache socket.io msgpack-js
+	# Installing gulp, grunt-cli, bower, jade, underscore, cookie, redis, memcache, socket.io, msgpack-js, forever, daemon:
+	# gulp is used for automated tasks:
+	sudo npm install -g gulp grunt-cli bower jade underscore cookie redis memcache socket.io msgpack-js forever daemon
 }
 
-restartServers(){
+amazonInstallation(){
+
+	if [ $currentEnvironment = DEVELOPMENT ]
+	then
+		sudo apt-get install python-pip awscli -y
+		sudo pip install awsebcli
+		eb --help
+		eb --version
+	fi
+}
+
+jenkisInstallation(){
+
+	wget -q -O - https://jenkins-ci.org/debian/jenkins-ci.org.key | sudo apt-key add -
+	sudo sh -c 'echo deb http://pkg.jenkins-ci.org/debian binary/ > /etc/apt/sources.list.d/jenkins.list'
+	sudo apt-get -y update
+	sudo apt-get install -y jenkins
+	sudo service jenkins start
+}
+
+startServers(){
 
 	printLine "Restarting"
 
 	# Restarting Servers:
-	sudo service nginx restart & sudo service varnish restart & sudo service apache2 restart & sudo service php5-fpm restart & sudo service memcached restart
+	sudo service memcached start & sudo service redis-server start
 }
-
 
 start(){
 
@@ -587,6 +627,8 @@ start(){
 		phalconPHPInstallation
 		zephirInstallation
 		nodejsInstallation
+		amazonInstallation
+		jenkisInstallation
 		restartServers
 	else
 	 echo "Invalid number of parameters, command should be like:\n sh dev_env.sh \"<Ahmed Kamal>\" \"<me.ahmed.kamal@gmail.com>\" \"[D|P]\"\n Optional values: \n D = DEVELOPMENT \n P = PRODUCTION \n"
