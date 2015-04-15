@@ -158,17 +158,16 @@ prepare(){
 
 basicEnvironment(){
 
-	# Installing memcached, mysql-server, curl, phantomjs, mongodb, git, postfix, ruby-sass, ruby-compass, node-less, htop, httpie, rar, unrar-free, xclip
-	# apache2-utils for apache utilities like apache benchmark "ab"
-	sudo apt-get -y install memcached mysql-server curl phantomjs mongodb git postfix ruby-sass ruby-compass node-less htop httpie rar unrar-free xclip
+	# Installing memcached, mysql-server, curl, phantomjs, mongodb, git, postfix, ruby-sass, ruby-compass, node-less, htop, httpie, rar, unrar-free
+	sudo apt-get -y install memcached mysql-server curl phantomjs mongodb git postfix ruby-sass ruby-compass node-less htop httpie rar unrar-free
 }
 
 devEnvironment(){
 
 	printLine "devEnvironment"
 
-	# Installing phpmyadmin, git-flow, filezilla, mysql-workbench, atom, sublime-text-installer, eclipse, android-studio, google-chrome-stable, skype, virtualbox-4.3, gimp, gparted, vlc, vuze
-	sudo apt-get install -y phpmyadmin git-flow filezilla mysql-workbench atom sublime-text-installer eclipse android-studio google-chrome-stable skype virtualbox-4.3 gimp gparted vlc vuze
+	# Installing phpmyadmin, git-flow, filezilla, mysql-workbench, atom, sublime-text-installer, eclipse, android-studio, google-chrome-stable, skype, virtualbox-4.3, gimp, gparted, vlc, vuze, xclip
+	sudo apt-get install -y phpmyadmin git-flow filezilla mysql-workbench atom sublime-text-installer eclipse android-studio google-chrome-stable skype virtualbox-4.3 gimp gparted vlc vuze xclip
 
 }
 
@@ -258,14 +257,6 @@ varnishInstallation(){
 	# Installing varnish
 	sudo apt-get install -y varnish
 
-	# Maximum number of open files (for ulimit -n)
-	maxOpenFiles=`ulimit -n`
-
-	# Maximum locked memory size (for ulimit -l)
-	# Used for locking the shared memory log in memory.  If you increase log size,
-	# you need to increase this number as well
-	maxLockedMemory=$(ulimit -l)
-
 	# Backing up, if there is no backup
 	if (! isFileExists "/etc/default/varnish.orig")
 	then
@@ -285,6 +276,14 @@ varnishInstallation(){
 
 	sudo cp varnish/*.vcl /etc/varnish -R
 
+	# Maximum number of open files (for ulimit -n)
+	maxOpenFiles=`ulimit -n`
+
+	# Maximum locked memory size (for ulimit -l)
+	# Used for locking the shared memory log in memory.  If you increase log size,
+	# you need to increase this number as well
+	maxLockedMemory=$(ulimit -l)
+
 	sudo sed -i "s/NFILES=131072/NFILES=$maxOpenFiles/" /etc/default/varnish
 	sudo sed -i "s/MEMLOCK=82000/MEMLOCK=$maxLockedMemory/" /etc/default/varnish
 
@@ -297,7 +296,8 @@ apacheInstallation(){
 	printLine "Apache"
 
 	# Installing apache2, apache2-utils, libapache2-mod-fastcgi, cronolog:
-	# apache2-mpm-worker
+	# apache2-utils for apache utilities like apache benchmark "ab"
+	# apache2-mpm-worker should be used with fast-cgi.
 	sudo apt-get install -y apache2 apache2-utils libapache2-mod-fastcgi cronolog
 
 	# libapache2-mod-rpaf The RPAF (Reverse Proxy Add Forward) module will make sure the IP of 127.0.0.1 will be replaced with the IP set in X-Forwarded-For set by Varnish as Apache will doesn't know who connects to it except the host ip address.
