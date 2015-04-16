@@ -17,11 +17,12 @@
 # @license
 # @author        Ahmed Kamal <me.ahmed.kamal@gmail.com>
 # @modified      2015-01-25
+#
 
 name=$1
 email=$2
 environmentType=$3
-currentEnvironment=DEVELOPMENT
+currentEnvironment=PRODUCTION
 apachePort=8090
 apacheDirectoriesConfigInclude=/etc/apache2/conf-available/includes/directories
 apacheHostsConfigInclude=/etc/apache2/conf-available/includes/hosts
@@ -56,7 +57,6 @@ checkParameters(){
 		then
 
 		${#currentEnvironment}=DEVELOPMENT
-		return 1
 	elif [ ${#environmentType} -eq "P" ]
 		then
 
@@ -158,18 +158,44 @@ prepare(){
 
 basicEnvironment(){
 
-	# Installing memcached, mysql-server, curl, phantomjs, mongodb, git, postfix, ruby-sass, ruby-compass, node-less, htop, httpie, rar, unrar-free, xclip
-	# apache2-utils for apache utilities like apache benchmark "ab"
-	sudo apt-get -y install memcached mysql-server curl phantomjs mongodb git postfix ruby-sass ruby-compass node-less htop httpie rar unrar-free xclip
+	# Installing phantomjs, redis-server, memcached, mysql-server, mongodb, git, ruby-sass, ruby-compass, node-less, httpie, curl, postfix, htop, rar, unrar-free, xclip
+	sudo apt-get install -y \
+	phantomjs \
+	redis-server \
+	memcached \
+	mysql-server \
+	mongodb \
+	git \
+	ruby-sass \
+	ruby-compass \
+	node-less \
+	postfix \
+	httpie \
+	curl \
+	htop \
+	rar \
+	unrar-free \
+	xclip
 }
 
 devEnvironment(){
 
 	printLine "devEnvironment"
 
-	# Installing phpmyadmin, git-flow, filezilla, mysql-workbench, atom, sublime-text-installer, eclipse, android-studio, google-chrome-stable, skype, virtualbox-4.3, gimp, gparted, vlc, vuze
-	sudo apt-get install -y phpmyadmin git-flow filezilla mysql-workbench atom sublime-text-installer eclipse android-studio google-chrome-stable skype virtualbox-4.3 gimp gparted vlc vuze
-
+	# Installing mysql-workbench, phpmyadmin, git-flow, filezilla, atom, sublime-text-installer, eclipse, android-studio, google-chrome-stable, skype, virtualbox-4.3, gimp, gparted, vlc, vuze
+	sudo apt-get install -y \
+	mysql-workbench \
+	phpmyadmin \
+	git-flow \
+	filezilla \
+	atom \
+	sublime-text-installer \
+	eclipse android-studio \
+	google-chrome-stable \
+	skype virtualbox-4.3 \
+	gimp gparted \
+	vlc \
+	vuze
 }
 
 install(){
@@ -258,14 +284,6 @@ varnishInstallation(){
 	# Installing varnish
 	sudo apt-get install -y varnish
 
-	# Maximum number of open files (for ulimit -n)
-	maxOpenFiles=`ulimit -n`
-
-	# Maximum locked memory size (for ulimit -l)
-	# Used for locking the shared memory log in memory.  If you increase log size,
-	# you need to increase this number as well
-	maxLockedMemory=$(ulimit -l)
-
 	# Backing up, if there is no backup
 	if (! isFileExists "/etc/default/varnish.orig")
 	then
@@ -285,6 +303,14 @@ varnishInstallation(){
 
 	sudo cp varnish/*.vcl /etc/varnish -R
 
+	# Maximum number of open files (for ulimit -n)
+	maxOpenFiles=`ulimit -n`
+
+	# Maximum locked memory size (for ulimit -l)
+	# Used for locking the shared memory log in memory.  If you increase log size,
+	# you need to increase this number as well
+	maxLockedMemory=$(ulimit -l)
+
 	sudo sed -i "s/NFILES=131072/NFILES=$maxOpenFiles/" /etc/default/varnish
 	sudo sed -i "s/MEMLOCK=82000/MEMLOCK=$maxLockedMemory/" /etc/default/varnish
 
@@ -297,8 +323,13 @@ apacheInstallation(){
 	printLine "Apache"
 
 	# Installing apache2, apache2-utils, libapache2-mod-fastcgi, cronolog:
-	# apache2-mpm-worker
-	sudo apt-get install -y apache2 apache2-utils libapache2-mod-fastcgi cronolog
+	# apache2-utils for apache utilities like apache benchmark "ab"
+	# apache2-mpm-worker should be used with fast-cgi.
+	sudo apt-get install -y \
+	apache2 \
+	apache2-utils \
+	libapache2-mod-fastcgi \
+	cronolog
 
 	# libapache2-mod-rpaf The RPAF (Reverse Proxy Add Forward) module will make sure the IP of 127.0.0.1 will be replaced with the IP set in X-Forwarded-For set by Varnish as Apache will doesn't know who connects to it except the host ip address.
 
@@ -315,8 +346,8 @@ apacheInstallation(){
 		sudo cp /etc/apache2/ports.conf /etc/apache2/ports.conf.orig
 		sudo chmod a-x /etc/apache2/ports.conf.orig
 
-		# Changing listening port to be 8000 instead of 80:
-		sudo sed -i 's/Listen 80/Listen 8000/' /etc/apache2/ports.conf
+		# Changing listening port to be 8090 instead of 80:
+		sudo sed -i 's/Listen 80/Listen 8090/' /etc/apache2/ports.conf
 	fi
 
 	# Check if one of the directories exists:
@@ -554,7 +585,7 @@ nodejsInstallation(){
 	curl -sL https://deb.nodesource.com/setup | sudo bash -
 
 	# Installing nodejs, npm:
-	sudo apt-get install nodejs npm -y
+	sudo apt-get -y install nodejs npm
 
 	# In old releases environment variables needs to be set manually.
 	# Setting the NODE_PATH environment variable:
