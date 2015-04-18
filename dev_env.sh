@@ -52,15 +52,15 @@ checkParameters(){
 	 	return 0
 	fi
 
-  # If environment value is not passed, then the default value is DEVELOPMENT
-	if [ ${#environmentType} -eq 0 ||  ${#environmentType} -eq "D"]
-		then
-
-		${#currentEnvironment}=DEVELOPMENT
-	elif [ ${#environmentType} -eq "P" ]
+  # If environment value is not passed, then the default value is PRODUCTION
+	if [ ${#environmentType} -eq 0 ||  ${#environmentType} -eq "P"]
 		then
 
 		${#currentEnvironment}=PRODUCTION
+	elif [ ${#environmentType} -eq "P" ]
+		then
+
+		${#currentEnvironment}=DEVELOPMENT
 	fi
 
 	# Checking for the number of passed variables
@@ -99,6 +99,14 @@ updatePrivilage(){
 
 	# Using root privilages:
 	sudo -v
+}
+
+prepare(){
+
+	printLine "Preparing"
+
+	apt-get install -y \
+	software-properties-common
 }
 
 addRepositories(){
@@ -150,12 +158,6 @@ update(){
 	sudo apt-get -y update && sudo apt-get -y upgrade
 }
 
-prepare(){
-
-	printLine "Preparing"
-
-}
-
 basicEnvironment(){
 
 	# Installing phantomjs, redis-server, memcached, mysql-server, mongodb, git, ruby-sass, ruby-compass, node-less, httpie, curl, postfix, htop, rar, unrar-free, xclip
@@ -192,8 +194,10 @@ devEnvironment(){
 	sublime-text-installer \
 	eclipse android-studio \
 	google-chrome-stable \
-	skype virtualbox-4.3 \
-	gimp gparted \
+	skype \
+	virtualbox-4.3 \
+	gimp \
+	gparted \
 	vlc \
 	vuze
 }
@@ -334,10 +338,21 @@ apacheInstallation(){
 	# libapache2-mod-rpaf The RPAF (Reverse Proxy Add Forward) module will make sure the IP of 127.0.0.1 will be replaced with the IP set in X-Forwarded-For set by Varnish as Apache will doesn't know who connects to it except the host ip address.
 
 	# Enabling actions, fastcgi, rewrite, headers, expires, macro, proxy_http, and proxy_fcgi modules:
-	sudo a2enmod actions fastcgi rewrite headers expires macro proxy_http proxy_fcgi
+	sudo a2enmod \
+	actions \
+	fastcgi \
+	rewrite \
+	headers \
+	expires \
+	macro \
+	proxy_http \
+	proxy_fcgi
 
 	# This will reduce the memory footprint of Apache, "negotiation" allows some languages negociation in the HTTP protocol between the browser and the server:
-	sudo a2dismod autoindex cgid negotiation
+	sudo a2dismod \
+	autoindex \
+	cgid \
+	negotiation
 
 	# Backing up, if there is no backup:
 	if (! isFileExists "/etc/apache2/ports.conf.orig")
@@ -389,8 +404,20 @@ phpInstallation(){
 	wget -O - http://dl.hhvm.com/conf/hhvm.gpg.key | sudo apt-key add -
 	echo "deb http://dl.hhvm.com/ubuntu $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hhvm.list > /dev/null
 
-	# Installing hhvm, php5, php5-fpm, php5-cli, php5-curl, php-apc, php5-redis, php5-memcached, php5-mysql, php5-dev, phpunit, php-codesniffer, drush, re2c, libpcre3-dev
-	sudo apt-get install -y hhvm php5 php5-fpm php5-cli php5-curl php-apc php5-redis php5-memcached php5-mysql php5-dev phpunit php-codesniffer drush re2c libpcre3-dev
+	# Installing hhvm, php5, php5-fpm, php5-curl, php-apc, php5-redis, php5-memcached, php5-mysql, php5-dev, phpunit, php-codesniffer, drush
+	sudo apt-get install -y \
+	hhvm \
+	php5 \
+	php5-fpm \
+	php5-curl \
+	php-apc \
+	php5-redis \
+	php5-memcached \
+	php5-mysql \
+	php5-dev \
+	phpunit \
+	php-codesniffer \
+	drush
 
 	# Backing up php5-fpm configuration:
 	sudo cp /etc/php5/fpm/pool.d/www.conf /etc/php5/fpm/pool.d/www.conf.orig
@@ -569,6 +596,10 @@ zephirInstallation(){
 
 	printLine "Zephir"
 
+	sudo apt-get install -y \
+	re2c \
+	libpcre3-dev
+
 	# Installing zephir:
 	cd  $toolsPath
 	sudo composer require phalcon/zephir:dev-master
@@ -641,10 +672,10 @@ start(){
 	then
 
 		updatePrivilage
+		prepare
 		addRepositories
 		addSourcesLists
 		update
-		prepare
 		install
 		javaInstallation
 		nginxInstallation
@@ -662,7 +693,7 @@ start(){
 		jenkisInstallation
 		restartServers
 	else
-	 echo "Invalid number of parameters, command should be like:\n sh dev_env.sh \"<Ahmed Kamal>\" \"<me.ahmed.kamal@gmail.com>\" \"[D|P]\"\n Optional values: \n D = DEVELOPMENT \n P = PRODUCTION \n"
+	 echo "Invalid number of parameters, command should be like:\n sh dev_env.sh \"<Ahmed Kamal>\" \"<me.ahmed.kamal@gmail.com>\" \"[D|P]\"\n Optional values: \n D = DEVELOPMENT \n P = PRODUCTION \n Default is PRODUCTION"
 	fi
 
 }
