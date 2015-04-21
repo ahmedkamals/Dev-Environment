@@ -106,7 +106,9 @@ prepare(){
 	printLine "Preparing"
 
 	apt-get install -y \
-	software-properties-common
+	software-properties-common \
+	nano \
+	wget
 }
 
 addRepositories(){
@@ -241,7 +243,7 @@ javaInstallation(){
 }
 
 ##
-# Used to prepare nginx configurations:
+# Used to install/configure Nginx:
 #
 nginxInstallation(){
 
@@ -279,7 +281,7 @@ nginxInstallation(){
 }
 
 ##
-# Used to prepare varnish configurations:
+# Used to install/configure Varnish:
 #
 varnishInstallation(){
 
@@ -322,6 +324,9 @@ varnishInstallation(){
 	sudo service varnish start
 }
 
+##
+# Used to install/configure Apache:
+#
 apacheInstallation(){
 
 	printLine "Apache"
@@ -375,6 +380,8 @@ apacheInstallation(){
 
 	# Copying apache configurations:
 	sudo cp apache/conf-available/*.conf /etc/apache2/conf-available/ -R
+
+	# Copying virtual host sample:
 	sudo cp apache/sites-available/*.conf /etc/apache2/sites-available/ -R
 
 	# Enabling configurations
@@ -386,16 +393,50 @@ apacheInstallation(){
 		sudo a2enconf phpmyadmin
 	fi
 
-	# Copying virtual host sample:
-	sudo cp apache/*.conf /etc/apache2/sites-available/ -R
-
 	# Gracefully restart Apache (this method of restarting won't kill open connections):
 	sudo apache2ctl graceful
 
-	# Starting Apache2:
-	sudo service apache2 start
+	# Apache2 status:
+	sudo service apache2 status
 }
 
+##
+# Used to install/configure Environment:
+#
+environmentConfigurations(){
+
+	printLine "Environment"
+
+	# Configuring time:
+	sudo dpkg-reconfigure tzdata
+
+	# Creating projects, tools, and authentication directories:
+	sudo mkdir -p $projectsPath
+	sudo mkdir -p $toolsPath
+	sudo mkdir -p $authenticationPath
+
+	# To best share with multiple users who should be able to write in /var/www, it should be assigned a common group. For example the default group for web content on Ubuntu and Debian is www-data. Make sure all the users who need write access to /var/www are in this group:
+	sudo usermod -a -G www-data $USER
+
+	# Then set the correct permissions on projects path:
+	sudo chown -R $USER:www-data $projectsPath
+
+	# Additionally, you should make the directory and all directories below it "set GID", so that all new files and directories created under /var/www/html are owned by the www-data group:
+	sudo find $projectsPath -type d -exec chmod 2775 {} \;
+
+	# Find all files in /var/www and add read and write permission for owner and group:
+	sudo find $projectsPath -type f -exec chmod ug+rw {} \;
+
+	# Appending new line to the end of file:
+	sudo find /etc -name "hosts" -exec sed -i '$a\\' {} ";"
+
+	# Applying hosts file:
+	sudo sh -c 'echo "\n127.0.0.1 ahmedkamal.local local.ahmedkamal.com" >> /etc/hosts'
+}
+
+##
+# Used to install/configure PHP:
+#
 phpInstallation(){
 
 	printLine "PHP"
@@ -422,18 +463,23 @@ phpInstallation(){
 	# Backing up php5-fpm configuration:
 	sudo cp /etc/php5/fpm/pool.d/www.conf /etc/php5/fpm/pool.d/www.conf.orig
 
-	# Backing up xdebug configuration:
-	sudo cp /etc/php5/mods-available/xdebug.ini /etc/php5/mods-available/xdebug.ini.orig
-
-	# Removing execution privilage:
-	sudo chmod a-x /etc/php5/mods-available/xdebug.ini.orig
-
-
 	if [ $currentEnvironment = DEVELOPMENT ]
 	then
 
 		# Installing php5-xdebug:
 		sudo apt-get install -y php5-xdebug
+
+		# Backing up, if there is no backup:
+		if (! isFileExists "/etc/php5/mods-available/xdebug.ini.orig")
+		then
+
+			# Backing up xdebug configuration:
+			sudo cp /etc/php5/mods-available/xdebug.ini /etc/php5/mods-available/xdebug.ini.orig
+
+			# Removing execution privilage:
+			sudo chmod a-x /etc/php5/mods-available/xdebug.ini.orig
+		fi
+
 		sudo sh -c "echo '
 		[Remote settings]
 		xdebug.remote_autostart=off
@@ -481,37 +527,6 @@ phpInstallation(){
 
 	# Starting php5-fpm:
 	sudo service php5-fpm start
-}
-
-environment(){
-
-	printLine "Environment"
-
-	# Configuring time:
-	sudo dpkg-reconfigure tzdata
-
-	# Creating projects, tools, and authentication directories:
-	sudo mkdir -p $projectsPath
-	sudo mkdir -p $toolsPath
-	sudo mkdir -p $authenticationPath
-
-	# To best share with multiple users who should be able to write in /var/www, it should be assigned a common group. For example the default group for web content on Ubuntu and Debian is www-data. Make sure all the users who need write access to /var/www are in this group:
-	sudo usermod -a -G www-data $USER
-
-	# Then set the correct permissions on projects path:
-	sudo chown -R $USER:www-data $projectsPath
-
-	# Additionally, you should make the directory and all directories below it "set GID", so that all new files and directories created under /var/www/html are owned by the www-data group:
-	sudo find $projectsPath -type d -exec chmod 2775 {} \;
-
-	# Find all files in /var/www and add read and write permission for owner and group:
-	sudo find $projectsPath -type f -exec chmod ug+rw {} \;
-
-	# Appending new line to the end of file:
-	sudo find /etc -name "hosts" -exec sed -i '$a\\' {} ";"
-
-	# Applying hosts file:
-	sudo sh -c 'echo "\n127.0.0.1 ahmedkamal.local local.ahmedkamal.com" >> /etc/hosts'
 }
 
 sshConfigurations(){
@@ -591,7 +606,6 @@ phalconPHPInstallation(){
 	sudo chmod ugo+x /usr/bin/phalcon
 }
 
-
 zephirInstallation(){
 
 	printLine "Zephir"
@@ -616,7 +630,9 @@ nodejsInstallation(){
 	curl -sL https://deb.nodesource.com/setup | sudo bash -
 
 	# Installing nodejs, npm:
-	sudo apt-get -y install nodejs npm
+	sudo apt-get install -y \
+	nodejs \
+	npm
 
 	# In old releases environment variables needs to be set manually.
 	# Setting the NODE_PATH environment variable:
@@ -633,7 +649,28 @@ nodejsInstallation(){
 
 	# Installing gulp, grunt-cli, bower, jade, underscore, cookie, redis, memcache, socket.io, msgpack-js, forever, daemon:
 	# gulp is used for automated tasks:
-	sudo npm install -g gulp grunt-cli bower jade underscore cookie redis memcache socket.io msgpack-js forever daemon
+	sudo npm install -g \
+	gulp \
+	grunt-cli \
+	bower \
+	jade \
+	underscore \
+	cookie \
+	redis \
+	memcache \
+	socket.io \
+	msgpack-js \
+	forever \
+	daemon
+}
+
+dockerInstallation(){
+
+	wget -qO- https://get.docker.com/ | sh
+
+	# Create the docker group and add your user.
+	sudo usermod -aG docker $USER
+
 }
 
 amazonInstallation(){
@@ -681,19 +718,20 @@ start(){
 		nginxInstallation
 		varnishInstallation
 		apacheInstallation
+		environmentConfigurations
 		phpInstallation
-		environment
 		sshConfigurations
 		gitConfigurations
 		composerConfigurations
 		phalconPHPInstallation
 		zephirInstallation
 		nodejsInstallation
+		dockerInstallation
 		amazonInstallation
 		jenkisInstallation
 		restartServers
 	else
-	 echo "Invalid number of parameters, command should be like:\n sh dev_env.sh \"<Ahmed Kamal>\" \"<me.ahmed.kamal@gmail.com>\" \"[D|P]\"\n Optional values: \n D = DEVELOPMENT \n P = PRODUCTION \n Default is PRODUCTION"
+	 echo -e "Invalid number of parameters, command should be like:\n sh dev_env.sh \"<Ahmed Kamal>\" \"<me.ahmed.kamal@gmail.com>\" \"[D|P]\"\n Optional values: \n D = DEVELOPMENT \n P = PRODUCTION \n Default is PRODUCTION\n"
 	fi
 
 }
