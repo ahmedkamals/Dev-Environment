@@ -21,19 +21,7 @@ FROM ubuntu:14.04
 MAINTAINER Ahmed Kamal <me.ahmed.kamal@gmail.com>
 
 # Install dependencies && Apache2:
-RUN apt-get update -y && RUN apt-get install -y \
-software-properties-common \
-nano \
-wget \
-apache2 \
-apache2-utils \
-libapache2-mod-fastcgi \
-cronolog \
-httpie \
-curl \
-htop \
-unrar-free \
-xclip
+RUN apt-get update -y && RUN apt-get install -y software-properties-common nano wget apache2 apache2-utils libapache2-mod-fastcgi cronolog httpie curl htop unrar-free xclip
 
 # Enabling actions, fastcgi, rewrite, headers, expires, macro, proxy_http, and proxy_fcgi modules:
 RUN a2enmod actions fastcgi rewrite headers expires macro proxy_http
