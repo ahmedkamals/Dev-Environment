@@ -42,17 +42,20 @@ checkParameters(){
 
 	if [ ${#name} -eq 0 ]
 	then
+
 		echo "Name is missing"
 		return 1
 	elif [ ${#email} -eq 0 ]
 	then
+
 		echo "Email is missing"
 		return 1
 	else
+
 	 	return 0
 	fi
 
-  # If environment value is not passed, then the default value is PRODUCTION
+  # If environment value is not passed, then the default value is PRODUCTION:
 	if [ ${#environmentType} -eq 0 ||  ${#environmentType} -eq "P"]
 		then
 
@@ -63,7 +66,7 @@ checkParameters(){
 		${#currentEnvironment}=DEVELOPMENT
 	fi
 
-	# Checking for the number of passed variables
+	# Checking for the number of passed variables:
 	[ ${#name} -ne 0 && ${#email} -ne 0 ] && return 0 || return 1
 }
 
@@ -164,6 +167,8 @@ basicEnvironment(){
 
 	# Installing phantomjs, redis-server, memcached, mysql-server, mongodb, git, ruby-sass, ruby-compass, node-less, httpie, curl, postfix, htop, rar, unrar-free, xclip
 	sudo apt-get install -y \
+	build-essential \
+	curl \
 	phantomjs \
 	redis-server \
 	memcached \
@@ -175,7 +180,6 @@ basicEnvironment(){
 	node-less \
 	postfix \
 	httpie \
-	curl \
 	htop \
 	rar \
 	unrar-free \
@@ -374,8 +378,8 @@ apacheInstallation(){
 	if (! isDirectoryExists $apacheDirectoriesConfigInclude)
 	then
 
-	sudo mkdir -p $apacheDirectoriesConfigInclude
-	sudo mkdir -p $apacheHostsConfigInclude
+		sudo mkdir -p $apacheDirectoriesConfigInclude
+		sudo mkdir -p $apacheHostsConfigInclude
 	fi
 
 	# Copying apache configurations:
@@ -449,9 +453,10 @@ phpInstallation(){
 	sudo apt-get install -y \
 	hhvm \
 	php5 \
+	php-apc \
 	php5-fpm \
 	php5-curl \
-	php-apc \
+	php5-gd \
 	php5-redis \
 	php5-memcached \
 	php5-mysql \
@@ -490,7 +495,7 @@ phpInstallation(){
 		xdebug.remote_mode=req
 		xdebug.remote_host=localhost
 		xdebug.remote_port=9000
-
+		\n\n
 		[General]
 		xdebug.auto_trace=off
 		xdebug.collect_includes=on
@@ -506,14 +511,14 @@ phpInstallation(){
 		xdebug.var_display_max_depth = -1
 		xdebug.var_display_max_children = -1
 		xdebug.var_display_max_data = -1
-
+		\n\n
 		[Profiling]
 		xdebug.profiler_append=0
 		xdebug.profiler_enable=0
 		xdebug.profiler_enable_trigger=0
 		xdebug.profiler_output_dir=/tmp
 		xdebug.profiler_output_name=crc32
-
+		\n\n
 		[Trace options]
 		xdebug.trace_format=0
 		xdebug.trace_output_dir=/tmp
@@ -639,6 +644,7 @@ nodejsInstallation(){
 	#sudo sh -c "echo 'NODE_PATH=/usr/local/lib/node_modules' >> /etc/environment"
 
 	if [ "${NODE_PATH}" = "" ]; then
+
 		export NODE_PATH=$(npm -g root 2>/dev/null)
 	fi
 
@@ -647,9 +653,10 @@ nodejsInstallation(){
 	# Reloading the environment variables file:
 	#source /etc/environment
 
-	# Installing gulp, grunt-cli, bower, jade, underscore, cookie, redis, memcache, socket.io, msgpack-js, forever, daemon:
+	# Installing node-inspector, gulp, grunt-cli, bower, jade, underscore, cookie, redis, memcache, socket.io, msgpack-js, forever, daemon:
 	# gulp is used for automated tasks:
-	sudo npm install -g \
+	npm install -g \
+	node-inspector \
 	gulp \
 	grunt-cli \
 	bower \
@@ -731,7 +738,8 @@ start(){
 		jenkisInstallation
 		restartServers
 	else
-	 echo -e "Invalid number of parameters, command should be like:\n sh dev_env.sh \"<Ahmed Kamal>\" \"<me.ahmed.kamal@gmail.com>\" \"[D|P]\"\n Optional values: \n D = DEVELOPMENT \n P = PRODUCTION \n Default is PRODUCTION\n"
+
+	  echo -e "Invalid number of parameters, command should be like:\n sh dev_env.sh \"<Ahmed Kamal>\" \"<me.ahmed.kamal@gmail.com>\" \"[D|P]\"\n Optional values: \n D = DEVELOPMENT \n P = PRODUCTION \n Default is PRODUCTION\n"
 	fi
 
 }
