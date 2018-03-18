@@ -1,21 +1,162 @@
-#! bin/sh
-
-# Installing Homebrew
-/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-brew update
+#! bin/bash
 
 # Github for homebrew installation.
 HOMEBREW_GITHUB_API_TOKEN="TOKEN"
 
 # Environment prpeartions.
 prepare() {
-  echo -e "HOMEBREW_GITHUB_API_TOKEN=\"${HOMEBREW_GITHUB_API_TOKEN}\"\n" >> $HOME/.profile
+  echo "#Homebrew github token:\nHOMEBREW_GITHUB_API_TOKEN=\"${HOMEBREW_GITHUB_API_TOKEN}\"" >> $HOME/.profile
 }
 
 getBashType() {
   echo $SHELL
 }
 
+# Homebrew installation.
+brewInstallation() {
+  /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+  brew update
+}
+
+# Git installation.
+gitInstallation() {
+  brew install git
+
+  git config --global core.autocrlf false
+
+	# Working with Unix line endings (LF).
+	git config --global core.eol LF
+
+	# Prevent pushing all locally modified branches if the branch to push is not specified while 'git push'.
+	git config --global push.default nothing
+
+	# Ignoring filemode changes for git calculation of file-is-modified.
+	git config --global core.filemode false
+
+	# If you are too lazy for typing "git checkout", "git status" or "git branch" all the time, it might be useful for you.
+	git config --global alias.co checkout
+	git config --global alias.ci commit
+	git config --global alias.st status
+	git config --global alias.br branch
+	git config --global alias.hist 'log --pretty=format:"%h %ad | %s%d [%an]" --graph --date=short'
+
+	# Colored Branch Names
+	#----------------------
+	git config --global color.ui auto
+}
+
+# Go lang installation
+golangInstallation() {
+  brew install go \
+    glide \
+    godep \
+    grpc/grpc/google-protobuf
+
+    local GOPATH="$HOME/go"
+
+    echo "\n# Go configurations:
+GO_BINARY=\`which go\`
+GO_BINARY_DIR=\`dirname \$GO_BINARY\`
+GO_RELATIVE_BINARY_DIR=\$(dirname \`readlink \$GO_BINARY\`)
+export GOROOT=\`cd \$GO_BINARY_DIR/\$GO_RELATIVE_BINARY_DIR/../libexec; pwd\`
+export GOPATH=$GOPATH
+export PATH=\$PATH:\$GOPATH/bin:/usr/local/sbin" >> $HOME/.profile
+
+  go get golang.org/x/tools/cmd/cover
+}
+
+# Java installation.
+javaInstallation() {
+    brew cask install java
+}
+
+# Scala installation.
+scalaInstallation() {
+  brew install scala
+}
+
+# PHP installation.
+phpInstallation() {
+  brew install homebrew/php/php72 \
+    homebrew/php/php72-mcrypt \
+    homebrew/php/php72-xdebug \
+    homebrew/php/phpunit \
+    behat \
+    selenium-server-standalone \
+    homebrew/php/codeception \
+    homebrew/php/php-code-sniffer \
+    homebrew/php/php-cs-fixer \
+    homebrew/php/phpmd \
+    homebrew/php/symfony-installer
+
+  echo "\n#Xdebug configurations:\nPHP_IDE_CONFIG=\"serverName=Localhost\"" >> $HOME/.profile
+}
+
+# Composer installation
+composerInstallation() {
+  brew install homebrew/php/composer \
+    homebrew/completions/composer-completion
+  # Disabling Xdebug.
+  echo 'function composer() { COMPOSER="$(which composer)" || { echo "Could not find composer in path" >&2 ; return 1 ; } && php -n $COMPOSER "$@" ; STATUS=$? ; return $STATUS ; }' >> ~/.bash_aliases
+  source ~/.bash_aliases
+}
+
+# Docker installation
+dockerInstallation() {
+	brew install docker \
+    homebrew/completions/docker-completion \
+  	docker-compose \
+    homebrew/completions/docker-compose-completion \
+  	docker-machine \
+    homebrew/completions/docker-machine-completion \
+    docker-machine-nfs \
+    docker-swarm \
+    Caskroom/cask/docker
+
+  echo "# Docker cleaning configuration:
+docker rm \$(docker ps -aqf status=exited -f status=dead)
+docker rmi \$(docker images -aqf dangling=true)
+docker volume rm \$(docker volume ls -qf dangling=true)
+docker ps -a --format {{.Names}}" >> $HOME/.profile
+}
+
+# Softwares.
+warezInstallation() {
+  #xcode-select --install
+	brew install wget \
+    jq \
+    tree \
+    htop-osx \
+    watch \
+    awscli \
+    homebrew/completions/brew-cask-completion
+
+    brew cask install google-chrome \
+    postman \
+    jetbrains-toolbox \
+    goland \
+    intellij-idea-ce \
+    phpstorm \
+    atom \
+    iterm2 \
+    mysqlworkbench \
+    sqlpro-for-mysql \
+    virtualbox \
+    slack \
+    skype \
+    dropbox \
+    evernote \
+    google-drive-file-stream \
+    google-hangouts \
+    caffeine \
+    grammarly
+
+    # Atom IDE packages.
+    apm install atom-ide-ui \
+      ide-php
+}
+
+# Commands auto completion.
 setAutoCompletion() {
   # Defaulting to /bin/bash.
   COMPLETION_PATH="etc/bash_completion.d"
@@ -50,138 +191,15 @@ HOMEBREW_BASH_COMPLETION=\${HOMEBREW_HOME}/\${COMPLETION_PATH}\n"
   done
 }
 
-# Git installation.
-gitInstallation() {
-  brew install git \
-    git-flow
-
-  git config --global core.autocrlf false
-
-	# Working with Unix line endings (LF).
-	git config --global core.eol LF
-
-	# Prevent pushing all locally modified branches if the branch to push is not specified while 'git push'.
-	git config --global push.default nothing
-
-	# Ignoring filemode changes for git calculation of file-is-modified.
-	git config --global core.filemode false
-
-	# If you are too lazy for typing "git checkout", "git status" or "git branch" all the time, it might be useful for you.
-	git config --global alias.co checkout
-	git config --global alias.ci commit
-	git config --global alias.st status
-	git config --global alias.br branch
-	git config --global alias.hist 'log --pretty=format:"%h %ad | %s%d [%an]" --graph --date=short'
-
-	# Colored Branch Names
-	#----------------------
-	git config --global color.ui auto
-}
-
-# Go lang installation
-golangInstallation() {
-  brew install go \
-    golint \
-    glide \
-    godep \
-    grpc/grpc/google-protobuf
-
-    echo -e "\n# Go configurations:
-GO_BINARY=\`which go\`
-GO_BINARY_DIR=\`dirname \$GO_BINARY\`
-GO_RELATIVE_BINARY_DIR=\$(dirname \`readlink \$GO_BINARY\`)
-export GOROOT=\`cd \$GO_BINARY_DIR/\$GO_RELATIVE_BINARY_DIR/../libexec; pwd\`
-export GOPATH=\$HOME/go
-export PATH=\$PATH:\$GOPATH/bin:/usr/local/sbin" >> $HOME/.profile
-}
-
-# Scala installation.
-scalaInstallation() {
-  brew cask install java
-  brew install scala
-}
-
-# PHP installation.
-phpInstallation() {
-  brew install homebrew/php/php71 \
-    homebrew/php/php71-mcrypt \
-    homebrew/php/php71-xdebug \
-    homebrew/php/phpunit \
-    behat \
-    selenium-server-standalone \
-    homebrew/php/codeception \
-    homebrew/php/php-code-sniffer \
-    homebrew/php/php-cs-fixer \
-    homebrew/php/phpmd \
-    homebrew/php/symfony-installer
-
-  echo -e "\n#Xdebug configurations:\nPHP_IDE_CONFIG=\"serverName=Parku\"" >> $HOME/.profile
-}
-
-# Composer installation
-composerInstallation() {
-  brew install homebrew/php/composer \
-    homebrew/completions/composer-completion
-  # Disabling Xdebug.
-  echo 'function composer() { COMPOSER="$(which composer)" || { echo "Could not find composer in path" >&2 ; return 1 ; } && php -n $COMPOSER "$@" ; STATUS=$? ; return $STATUS ; }' >> ~/.bash_aliases
-  source ~/.bash_aliases
-}
-
-# Docker installation
-dockerInstallation() {
-	brew install docker \
-    homebrew/completions/docker-completion \
-  	docker-compose \
-    homebrew/completions/docker-compose-completion \
-  	docker-machine \
-    homebrew/completions/docker-machine-completion \
-    docker-machine-nfs \
-    docker-swarm \
-    Caskroom/cask/docker
-
-  echo -e "\ndocker rm \$(docker ps -aqf status=exited -f status=dead)
-docker rmi \$(docker images -aqf dangling=true)
-docker volume rm \$(docker volume ls -qf dangling=true)
-docker ps -a --format {{.Names}}" >> $HOME/.profile
-}
-
-# Softwares.
-warezInstallation() {
-  xcode-select --install
-	brew install wget \
-    htop-osx \
-    tree \
-    npm \
-    awscli \
-    homebrew/completions/brew-cask-completion \
-    Caskroom/cask/google-chrome \
-    Caskroom/versions/intellij-idea-ce \
-    Caskroom/cask/phpstorm \
-    Caskroom/cask/atom \
-    Caskroom/cask/iterm2 \
-    Caskroom/cask/mysqlworkbench \
-    Caskroom/cask/sqlpro-for-mysql \
-    Caskroom/cask/virtualbox \
-    Caskroom/cask/slack \
-  	Caskroom/cask/skype \
-    Caskroom/cask/dropbox \
-    Caskroom/cask/evernote \
-    Caskroom/cask/google-drive \
-    Caskroom/cask/google-hangouts \
-    Caskroom/cask/1password \
-    Caskroom/cask/caffeine \
-    Caskroom/cask/grammarly
-
-  npm install -g grunt
-}
-
 fire() {
   prepare
+  brewInstallation
   gitInstallation
   golangInstallation
-  scalaInstallation
-  phpInstallation
-  composerInstallation
+  javaInstallation
+#  scalaInstallation
+#  phpInstallation
+#  composerInstallation
   dockerInstallation
   warezInstallation
   setAutoCompletion
